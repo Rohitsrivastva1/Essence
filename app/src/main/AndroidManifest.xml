@@ -4,7 +4,10 @@
 
     <!-- Permissions for app discovery and launching -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
-    <uses-permission android:name="android.permission.GET_TASKS" />
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" />
+    
+    <!-- System-level permissions for launcher functionality -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:allowBackup="true"
@@ -27,14 +30,18 @@
             </intent-filter>
         </activity>
 
-        <!-- Main launcher activity -->
+        <!-- Main launcher activity - HOME only -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:screenOrientation="portrait">
-            <!-- Register as HOME launcher -->
-            <intent-filter>
+            android:screenOrientation="portrait"
+            android:excludeFromRecents="true"
+            android:clearTaskOnLaunch="false"
+            android:finishOnTaskLaunch="false"
+            android:noHistory="false">
+            <!-- Register as HOME launcher only -->
+            <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -52,6 +59,12 @@
             android:name=".AnalyticsActivity"
             android:exported="false"
             android:label="Analytics" />
+            
+        <!-- Launcher service to maintain launcher functionality -->
+        <service
+            android:name=".LauncherService"
+            android:enabled="true"
+            android:exported="false" />
     </application>
 
 </manifest>
