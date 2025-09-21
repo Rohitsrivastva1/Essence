@@ -19,15 +19,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Essence">
         
-~        <!-- Main launcher activity -->
+        <!-- Onboarding activity -->
         <activity
-            android:name=".MainActivity"
+            android:name=".OnboardingActivity"
             android:exported="true"
-            android:launchMode="singleTask"
-            android:screenOrientation="portrait"
             android:theme="@style/Theme.Essence">
-            <!-- Register as both app launcher and HOME launcher -->
-            <intent-filter android:priority="1">
+            <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
@@ -50,12 +47,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
-        <!-- Onboarding activity -->
-        <activity
-            android:name=".OnboardingActivity"
-            android:exported="false"
-            android:theme="@style/Theme.Essence" />
 
         <!-- Settings activity for app whitelist management -->
         <activity
