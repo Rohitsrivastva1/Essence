@@ -1,3 +1,14 @@
 <resources>
     <string name="app_name">Essence</string>
+    <string name="settings_title">Settings</string>
+    <string name="select_apps">Select Apps</string>
+    <string name="no_apps_selected">No apps selected. Tap the settings icon to add apps.</string>
+    <string name="app_not_found">App not found</string>
+    <string name="settings">Settings</string>
+    <string name="add_apps">Add Apps</string>
+    <string name="remove_apps">Remove Apps</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="search_apps">Search apps...</string>
+    <string name="no_apps_found">No apps found</string>
 </resources>
