@@ -2,6 +2,7 @@ package com.nexusapps.essence
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.viewpager2.widget.ViewPager2
@@ -82,7 +83,7 @@ class OnboardingActivity : AppCompatActivity() {
             val layoutParams = LinearLayout.LayoutParams(24, 24)
             layoutParams.setMargins(8, 0, 8, 0)
             dot.layoutParams = layoutParams
-            dot.setImageResource(android.R.drawable.ic_menu_circle)
+            dot.setImageResource(android.R.drawable.radiobutton_on_background)
             dot.alpha = 0.3f
             pageIndicator.addView(dot)
         }

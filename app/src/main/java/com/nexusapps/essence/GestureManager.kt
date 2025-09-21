@@ -9,7 +9,7 @@ import android.widget.Toast
 class GestureManager(
     private val context: Context,
     private val appWhitelistManager: AppWhitelistManager
-) : View.OnTouchListener, GestureDetector.OnGestureListener {
+) : View.OnTouchListener, GestureDetector.SimpleOnGestureListener() {
     
     private val gestureDetector = GestureDetector(context, this)
     private var startTime: Long = 0
@@ -21,44 +21,28 @@ class GestureManager(
     }
     
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
-        return gestureDetector.onTouchEvent(event)
+        return gestureDetector.onTouchEvent(event!!)
     }
     
-    override fun onDown(e: MotionEvent?): Boolean {
+    override fun onDown(e: MotionEvent): Boolean {
         startTime = System.currentTimeMillis()
         return true
     }
     
-    override fun onShowPress(e: MotionEvent?) {
-        // Do nothing
-    }
     
-    override fun onSingleTapUp(e: MotionEvent?): Boolean {
-        return false
-    }
-    
-    override fun onScroll(
-        e1: MotionEvent?,
-        e2: MotionEvent?,
-        distanceX: Float,
-        distanceY: Float
-    ): Boolean {
-        return false
-    }
-    
-    override fun onLongPress(e: MotionEvent?) {
+    override fun onLongPress(e: MotionEvent) {
         // Long press - show quick actions
         showQuickActions()
     }
     
     override fun onFling(
         e1: MotionEvent?,
-        e2: MotionEvent?,
+        e2: MotionEvent,
         velocityX: Float,
         velocityY: Float
     ): Boolean {
-        val diffY = e2?.y?.minus(e1?.y ?: 0f) ?: 0f
-        val diffX = e2?.x?.minus(e1?.x ?: 0f) ?: 0f
+        val diffY = e2.y - (e1?.y ?: 0f)
+        val diffX = e2.x - (e1?.x ?: 0f)
         
         return when {
             Math.abs(diffY) > Math.abs(diffX) -> {
