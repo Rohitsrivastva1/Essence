@@ -5,6 +5,8 @@
     <!-- Permissions for app discovery and launching -->
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
     <uses-permission android:name="android.permission.GET_TASKS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
         android:allowBackup="true"
@@ -16,30 +18,30 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Essence">
         
-        <!-- Onboarding activity -->
-        <activity
-            android:name=".OnboardingActivity"
-            android:exported="true"
-            android:theme="@style/Theme.Essence">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-
-        <!-- Main launcher activity -->
+~        <!-- Main launcher activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTask"
-            android:screenOrientation="portrait">
-            <!-- Register as HOME launcher -->
-            <intent-filter>
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.Essence">
+            <!-- Register as both app launcher and HOME launcher -->
+            <intent-filter android:priority="1">
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter android:priority="1">
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <!-- Onboarding activity -->
+        <activity
+            android:name=".OnboardingActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Essence" />
 
         <!-- Settings activity for app whitelist management -->
         <activity

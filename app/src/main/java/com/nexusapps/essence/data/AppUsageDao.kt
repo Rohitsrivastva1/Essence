@@ -2,6 +2,7 @@ package com.nexusapps.essence.data
 
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
+import java.util.Date
 
 @Dao
 interface AppUsageDao {

@@ -9,6 +9,9 @@ import android.content.Intent
 import android.graphics.drawable.Drawable
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.nexusapps.essence.data.AppDatabase
+import com.nexusapps.essence.data.AppUsageEntity
+import com.nexusapps.essence.data.AppSessionEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,9 +32,9 @@ data class AppInfo(
 class AppWhitelistManager(private val context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences("app_whitelist", Context.MODE_PRIVATE)
     private val packageManager: PackageManager = context.packageManager
-    private val categoryManager = AppCategoryManager(context)
+    val categoryManager = AppCategoryManager(context)
     private val database = AppDatabase.getDatabase(context)
-    private val appUsageDao = database.appUsageDao()
+    val appUsageDao = database.appUsageDao()
     
     private val _whitelistedApps = MutableLiveData<List<AppInfo>>()
     val whitelistedApps: LiveData<List<AppInfo>> = _whitelistedApps
@@ -97,8 +100,12 @@ class AppWhitelistManager(private val context: Context) {
                 val category = categoryManager.categorizeApp(packageName, appName)
                 
                 // Get usage data from database
-                val usageData = CoroutineScope(Dispatchers.IO).run {
-                    appUsageDao.getAppUsage(packageName)
+                val usageData = try {
+                    kotlinx.coroutines.runBlocking {
+                        appUsageDao.getAppUsage(packageName)
+                    }
+                } catch (e: Exception) {
+                    null
                 }
                 
                 val totalTimeSpent = usageData?.totalTimeSpent ?: 0L
