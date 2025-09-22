@@ -1,6 +1,9 @@
 package com.nexusapps.essence
 
 import android.content.Context
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
@@ -12,12 +15,16 @@ class GestureManager(
 ) : View.OnTouchListener, GestureDetector.SimpleOnGestureListener() {
     
     private val gestureDetector = GestureDetector(context, this)
+    private val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
     private var startTime: Long = 0
+    private var gestureStartX: Float = 0f
+    private var gestureStartY: Float = 0f
     
     companion object {
-        private const val SWIPE_THRESHOLD = 100
-        private const val SWIPE_VELOCITY_THRESHOLD = 100
+        private const val SWIPE_THRESHOLD = 80 // Reduced for better sensitivity
+        private const val SWIPE_VELOCITY_THRESHOLD = 80 // Reduced for better sensitivity
         private const val LONG_PRESS_DURATION = 500
+        private const val HAPTIC_FEEDBACK_DURATION = 50L
     }
     
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
@@ -26,12 +33,15 @@ class GestureManager(
     
     override fun onDown(e: MotionEvent): Boolean {
         startTime = System.currentTimeMillis()
+        gestureStartX = e.x
+        gestureStartY = e.y
         return true
     }
     
     
     override fun onLongPress(e: MotionEvent) {
         // Long press - show quick actions
+        performHapticFeedback()
         showQuickActions()
     }
     
@@ -41,18 +51,20 @@ class GestureManager(
         velocityX: Float,
         velocityY: Float
     ): Boolean {
-        val diffY = e2.y - (e1?.y ?: 0f)
-        val diffX = e2.x - (e1?.x ?: 0f)
+        val diffY = e2.y - (e1?.y ?: gestureStartY)
+        val diffX = e2.x - (e1?.x ?: gestureStartX)
         
-        return when {
+        val gestureDetected = when {
             Math.abs(diffY) > Math.abs(diffX) -> {
                 when {
                     Math.abs(diffY) > SWIPE_THRESHOLD && Math.abs(velocityY) > SWIPE_VELOCITY_THRESHOLD -> {
                         if (diffY > 0) {
                             // Swipe down - show quick settings
+                            performHapticFeedback()
                             showQuickSettings()
                         } else {
                             // Swipe up - show app drawer
+                            performHapticFeedback()
                             showAppDrawer()
                         }
                         true
@@ -64,10 +76,12 @@ class GestureManager(
                 when {
                     diffX > 0 -> {
                         // Swipe right - show favorites and all apps
+                        performHapticFeedback()
                         showFavoritesAndAllApps()
                     }
                     else -> {
                         // Swipe left - next focus mode
+                        performHapticFeedback()
                         switchToNextFocusMode()
                     }
                 }
@@ -75,6 +89,8 @@ class GestureManager(
             }
             else -> false
         }
+        
+        return gestureDetected
     }
     
     private fun showQuickActions() {
@@ -179,5 +195,17 @@ class GestureManager(
         
         appWhitelistManager.setFocusMode(prevMode)
         Toast.makeText(context, "Focus Mode: $prevMode", Toast.LENGTH_SHORT).show()
+    }
+    
+    private fun performHapticFeedback() {
+        if (vibrator.hasVibrator()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                val effect = VibrationEffect.createOneShot(HAPTIC_FEEDBACK_DURATION, VibrationEffect.DEFAULT_AMPLITUDE)
+                vibrator.vibrate(effect)
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(HAPTIC_FEEDBACK_DURATION)
+            }
+        }
     }
 }

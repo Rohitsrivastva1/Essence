@@ -44,7 +44,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var dateText: TextView
     private lateinit var callButton: Button
     private lateinit var cameraButton: Button
-    private lateinit var allAppsButton: Button
+    private lateinit var messagesButton: Button
+    private lateinit var browserButton: Button
+    private lateinit var calculatorButton: Button
+    private lateinit var settingsQuickButton: Button
     private var isLauncherMode = false
     private var backPressCount = 0
     private val backPressHandler = Handler(Looper.getMainLooper())
@@ -92,7 +95,10 @@ class MainActivity : AppCompatActivity() {
         dateText = findViewById(R.id.dateText)
         callButton = findViewById(R.id.callButton)
         cameraButton = findViewById(R.id.cameraButton)
-        allAppsButton = findViewById(R.id.allAppsButton)
+        messagesButton = findViewById(R.id.messagesButton)
+        browserButton = findViewById(R.id.browserButton)
+        calculatorButton = findViewById(R.id.calculatorButton)
+        settingsQuickButton = findViewById(R.id.settingsQuickButton)
         gestureManager = GestureManager(this, appWhitelistManager)
         performanceMonitor = PerformanceMonitor(this)
         
@@ -429,9 +435,24 @@ class MainActivity : AppCompatActivity() {
             openCamera()
         }
         
-        // All apps button
-        allAppsButton.setOnClickListener {
-            showAllApps()
+        // Messages button
+        messagesButton.setOnClickListener {
+            openMessages()
+        }
+        
+        // Browser button
+        browserButton.setOnClickListener {
+            openBrowser()
+        }
+        
+        // Calculator button
+        calculatorButton.setOnClickListener {
+            openCalculator()
+        }
+        
+        // Settings button
+        settingsQuickButton.setOnClickListener {
+            openSettings()
         }
     }
     
@@ -457,14 +478,59 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
-    private fun showAllApps() {
-        // Show all installed apps in a dialog or new activity
-        val allApps = appWhitelistManager.getAllInstalledApps()
-        if (allApps.isNotEmpty()) {
-            // For now, show a toast with app count
-            Toast.makeText(this, "Found ${allApps.size} apps. Swipe right to see them!", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "No apps found", Toast.LENGTH_SHORT).show()
+    private fun openMessages() {
+        try {
+            val messagesIntent = Intent(Intent.ACTION_MAIN)
+            messagesIntent.addCategory(Intent.CATEGORY_APP_MESSAGING)
+            if (messagesIntent.resolveActivity(packageManager) != null) {
+                startActivity(messagesIntent)
+            } else {
+                // Fallback to SMS app
+                val smsIntent = Intent(Intent.ACTION_VIEW)
+                smsIntent.type = "vnd.android-dir/mms-sms"
+                startActivity(smsIntent)
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Cannot open messages", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun openBrowser() {
+        try {
+            val browserIntent = Intent(Intent.ACTION_MAIN)
+            browserIntent.addCategory(Intent.CATEGORY_APP_BROWSER)
+            if (browserIntent.resolveActivity(packageManager) != null) {
+                startActivity(browserIntent)
+            } else {
+                // Fallback to web search
+                val webIntent = Intent(Intent.ACTION_WEB_SEARCH)
+                startActivity(webIntent)
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Cannot open browser", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun openCalculator() {
+        try {
+            val calculatorIntent = Intent(Intent.ACTION_MAIN)
+            calculatorIntent.addCategory(Intent.CATEGORY_APP_CALCULATOR)
+            if (calculatorIntent.resolveActivity(packageManager) != null) {
+                startActivity(calculatorIntent)
+            } else {
+                Toast.makeText(this, "No calculator app found", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Cannot open calculator", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun openSettings() {
+        try {
+            val settingsIntent = Intent(android.provider.Settings.ACTION_SETTINGS)
+            startActivity(settingsIntent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Cannot open settings", Toast.LENGTH_SHORT).show()
         }
     }
 
