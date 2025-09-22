@@ -11,6 +11,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
 
@@ -27,13 +28,8 @@
         <!-- Onboarding activity -->
         <activity
             android:name=".OnboardingActivity"
-            android:exported="true"
-            android:theme="@style/Theme.Essence">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:exported="false"
+            android:theme="@style/Theme.Essence" />
 
         <!-- Main launcher activity - HOME only -->
         <activity
@@ -41,24 +37,25 @@
             android:exported="true"
             android:launchMode="singleTask"
             android:screenOrientation="portrait"
+            android:resizeableActivity="true"
             android:excludeFromRecents="true"
             android:clearTaskOnLaunch="false"
             android:finishOnTaskLaunch="false"
             android:noHistory="false"
-            android:taskAffinity="com.nexusapps.essence.launcher"
+            android:taskAffinity=""
             android:allowTaskReparenting="false"
             android:alwaysRetainTaskState="true"
-            android:stateNotNeeded="false">
-            <!-- Register as HOME launcher only -->
+            android:stateNotNeeded="true">
+            <!-- Register as HOME launcher and app launcher -->
             <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-            <!-- Handle home button presses -->
+            <!-- Also register as app launcher for initial setup -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
@@ -73,6 +70,13 @@
             android:name=".AnalyticsActivity"
             android:exported="false"
             android:label="Analytics" />
+        
+        <!-- Full-screen app drawer with dark theme -->
+        <activity
+            android:name=".AppDrawerActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Essence">
+        </activity>
             
         <!-- Launcher service to maintain launcher functionality -->
         <service

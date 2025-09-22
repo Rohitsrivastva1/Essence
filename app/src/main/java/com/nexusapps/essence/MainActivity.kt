@@ -3,10 +3,13 @@ package com.nexusapps.essence
 import android.app.ActivityManager
 import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
+import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.os.BatteryManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -20,9 +23,11 @@ import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -50,8 +55,13 @@ class MainActivity : AppCompatActivity() {
     private lateinit var performanceMonitor: PerformanceMonitor
     private lateinit var timeText: TextView
     private lateinit var dateText: TextView
-    private lateinit var callButton: Button
-    private lateinit var cameraButton: Button
+    private lateinit var batteryText: TextView
+    private lateinit var favoriteAppsContainer: LinearLayout
+    private var batteryReceiver: BroadcastReceiver? = null
+    private var cachedFavoriteApps: List<AppInfo>? = null
+    private var lastAppRefresh: Long = 0
+    private lateinit var callButton: ImageButton
+    private lateinit var cameraButton: ImageButton
     private lateinit var messagesButton: Button
     private lateinit var browserButton: Button
     private lateinit var calculatorButton: Button
@@ -68,7 +78,7 @@ class MainActivity : AppCompatActivity() {
     private val clockRunnable = object : Runnable {
         override fun run() {
             updateClock()
-            clockHandler.postDelayed(this, 1000) // Update every second
+            clockHandler.postDelayed(this, 30000) // Update every 30 seconds instead of every second
         }
     }
 
@@ -82,6 +92,11 @@ class MainActivity : AppCompatActivity() {
                         intent.action == Intent.ACTION_MAIN && 
                         intent.categories?.contains(Intent.CATEGORY_HOME) == true
         
+        // Debug logging
+        Log.d("MainActivity", "Intent action: ${intent.action}")
+        Log.d("MainActivity", "Intent categories: ${intent.categories}")
+        Log.d("MainActivity", "Is launcher mode: $isLauncherMode")
+        
         // Check if onboarding is needed
         val prefs = getSharedPreferences("essence_prefs", MODE_PRIVATE)
         if (!prefs.getBoolean("onboarding_completed", false)) {
@@ -89,6 +104,12 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
             return
+        }
+        
+        // If this is the first launch after onboarding, help user set as default launcher
+        if (!prefs.getBoolean("launcher_setup_shown", false) && !isLauncherMode) {
+            showInitialLauncherSetup()
+            prefs.edit().putBoolean("launcher_setup_shown", true).apply()
         }
         
         // If in launcher mode, prevent access to system launcher
@@ -106,6 +127,8 @@ class MainActivity : AppCompatActivity() {
         settingsButton = findViewById(R.id.settingsButton)
         timeText = findViewById(R.id.timeText)
         dateText = findViewById(R.id.dateText)
+        batteryText = findViewById(R.id.batteryText)
+        favoriteAppsContainer = findViewById(R.id.favoriteAppsContainer)
         callButton = findViewById(R.id.callButton)
         cameraButton = findViewById(R.id.cameraButton)
         messagesButton = findViewById(R.id.messagesButton)
@@ -144,11 +167,18 @@ class MainActivity : AppCompatActivity() {
         updateClock()
         clockHandler.post(clockRunnable)
         
+        // Setup battery monitoring
+        setupBatteryMonitoring()
+        updateBatteryLevel()
+        
         // Start performance monitoring
         performanceMonitor.startMonitoring()
         
         // Load and display whitelisted apps
         loadWhitelistedApps()
+        
+        // Load and display favorite apps
+        loadFavoriteApps()
     }
     
     private fun setupLauncherMode() {
@@ -210,8 +240,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
+    @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         if (isLauncherMode) {
+            // Don't call finish() or moveTaskToBack(true) - keep launcher alive
             handleBackPress()
         } else {
             super.onBackPressed()
@@ -221,14 +253,23 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         
+        // Debug visibility fix - force window visible
+        Log.d("Essence", "MainActivity resumed, visibility=${window.decorView.visibility}")
+        window.decorView.visibility = View.VISIBLE
+        
+        // Ensure root view is visible
+        findViewById<View>(R.id.main)?.visibility = View.VISIBLE
+        
         // If in launcher mode, ensure we're always on top
         if (isLauncherMode) {
+            Log.d("Essence", "In launcher mode - ensuring visibility and focus")
             // Ensure we're still the home launcher
             ensureLauncherMode()
         }
         
         // Refresh the app list when returning from settings
         loadWhitelistedApps()
+        loadFavoriteApps()
     }
     
     private fun ensureLauncherMode() {
@@ -239,32 +280,44 @@ class MainActivity : AppCompatActivity() {
         val resolveInfo = packageManager.resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)
         
         if (resolveInfo?.activityInfo?.packageName == packageName) {
-            // We're still the default launcher, ensure we're in front
-            moveTaskToBack(false)
+            // We're still the default launcher - keep window visible and focused
+            Log.d("Essence", "Still default launcher - maintaining visibility")
+            window.decorView.visibility = View.VISIBLE
+            // Don't call moveTaskToBack() as it can cause window destruction
         } else {
             // We're no longer the default launcher, show setup instructions
+            Log.w("Essence", "No longer default launcher - showing setup")
             showLauncherSetupInstructions()
         }
     }
     
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
+        Log.d("Essence", "onNewIntent: ${intent?.action}, categories: ${intent?.categories}")
+        
         // Handle new intents when app is already running
         if (intent != null && intent.hasCategory(Intent.CATEGORY_HOME)) {
-            // This is a home intent, bring our launcher to front
-            moveTaskToBack(false)
+            // This is a home intent - ensure we're visible and focused
+            Log.d("Essence", "HOME intent received - ensuring visibility")
+            window.decorView.visibility = View.VISIBLE
+            findViewById<View>(R.id.main)?.visibility = View.VISIBLE
+            // Don't call moveTaskToBack() - keep the launcher visible
         }
     }
     
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (isLauncherMode && !hasFocus) {
-            // If we lose focus in launcher mode, bring ourselves back to front
-            Handler(Looper.getMainLooper()).postDelayed({
-                if (isLauncherMode) {
-                    moveTaskToBack(false)
-                }
-            }, 100)
+        Log.d("Essence", "Window focus changed: $hasFocus, launcherMode: $isLauncherMode")
+        
+        if (isLauncherMode) {
+            if (hasFocus) {
+                // We have focus - ensure visibility
+                window.decorView.visibility = View.VISIBLE
+                findViewById<View>(R.id.main)?.visibility = View.VISIBLE
+            } else {
+                // Lost focus - but don't call moveTaskToBack() as it destroys window
+                Log.d("Essence", "Lost focus but keeping window alive")
+            }
         }
     }
     
@@ -274,17 +327,25 @@ class MainActivity : AppCompatActivity() {
         homeIntent.addCategory(Intent.CATEGORY_HOME)
         val resolveInfo = packageManager.resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)
         
-        if (resolveInfo?.activityInfo?.packageName != packageName) {
-            // We're not the default launcher, but don't show instructions every time
+        val currentDefaultLauncher = resolveInfo?.activityInfo?.packageName
+        Log.d("MainActivity", "Current default launcher: $currentDefaultLauncher")
+        Log.d("MainActivity", "Our package name: $packageName")
+        
+        if (currentDefaultLauncher != packageName) {
+            // We're not the default launcher
+            Log.w("MainActivity", "Not set as default launcher - HOME button won't work")
+            
             val prefs = getSharedPreferences("essence_prefs", MODE_PRIVATE)
             val lastPromptTime = prefs.getLong("last_launcher_prompt", 0)
             val currentTime = System.currentTimeMillis()
             
-            // Only show prompt once per day
-            if (currentTime - lastPromptTime > 24 * 60 * 60 * 1000) {
+            // Show prompt more frequently if not set as default
+            if (currentTime - lastPromptTime > 60 * 1000) { // Every minute instead of daily
                 showLauncherSetupInstructions()
                 prefs.edit().putLong("last_launcher_prompt", currentTime).apply()
             }
+        } else {
+            Log.i("MainActivity", "Successfully set as default launcher!")
         }
         
         // Check UsageStats permission for Android 10+ (only if not already granted)
@@ -323,6 +384,45 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
             }
             .setNegativeButton("Skip", null)
+            .show()
+    }
+    
+    private fun showInitialLauncherSetup() {
+        val message = """
+            🏠 IMPORTANT: Set as Default Launcher
+            
+            Your HOME button won't work until you set Essence as your default launcher.
+            
+            Steps:
+            1. Tap "Set as Default" below
+            2. Select "Essence" from the list
+            3. Tap "Always" when prompted
+            
+            ⚠️ Without this, pressing HOME will do nothing!
+        """.trimIndent()
+        
+        android.app.AlertDialog.Builder(this)
+            .setTitle("⚠️ Setup Required")
+            .setMessage(message)
+            .setPositiveButton("Set as Default") { _, _ ->
+                Log.d("MainActivity", "User clicked Set as Default - triggering launcher chooser")
+                // Trigger the launcher chooser by sending a HOME intent
+                val homeIntent = Intent(Intent.ACTION_MAIN)
+                homeIntent.addCategory(Intent.CATEGORY_HOME)
+                homeIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                startActivity(homeIntent)
+            }
+            .setNegativeButton("Manual Setup") { _, _ ->
+                Toast.makeText(this, "Go to: Settings > Apps > Default Apps > Home app > Select Essence", Toast.LENGTH_LONG).show()
+                // Also open settings directly
+                try {
+                    val intent = Intent(android.provider.Settings.ACTION_HOME_SETTINGS)
+                    startActivity(intent)
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Could not open home settings", e)
+                }
+            }
+            .setCancelable(false)
             .show()
     }
     
@@ -403,6 +503,56 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+    
+    private fun loadFavoriteApps() {
+        val currentTime = System.currentTimeMillis()
+        
+        // Only refresh apps every 30 seconds to reduce lag
+        if (cachedFavoriteApps == null || currentTime - lastAppRefresh > 30000) {
+            cachedFavoriteApps = appWhitelistManager.getFocusModeApps().take(6)
+            lastAppRefresh = currentTime
+        }
+        
+        // Clear existing views
+        favoriteAppsContainer.removeAllViews()
+        
+        // Use cached apps
+        cachedFavoriteApps?.let { favoriteApps ->
+            if (favoriteApps.isNotEmpty()) {
+                for (app in favoriteApps) {
+                    val appView = createFavoriteAppView(app)
+                    favoriteAppsContainer.addView(appView)
+                }
+            }
+        }
+    }
+    
+    private fun createFavoriteAppView(app: AppInfo): TextView {
+        val textView = TextView(this)
+        textView.text = app.appName
+        textView.textSize = 16f
+        textView.setTextColor(0xFFFFFFFF.toInt())
+        textView.typeface = android.graphics.Typeface.create("sans-serif-light", android.graphics.Typeface.NORMAL)
+        
+        // Set padding and margins
+        val padding = (16 * resources.displayMetrics.density).toInt()
+        textView.setPadding(0, padding/2, 0, padding/2)
+        
+        // Set layout params
+        val layoutParams = LinearLayout.LayoutParams(
+            LinearLayout.LayoutParams.WRAP_CONTENT,
+            LinearLayout.LayoutParams.WRAP_CONTENT
+        )
+        layoutParams.setMargins(0, 0, 0, (8 * resources.displayMetrics.density).toInt())
+        textView.layoutParams = layoutParams
+        
+        // Set click listener
+        textView.setOnClickListener {
+            launchApp(app.packageName)
+        }
+        
+        return textView
+    }
 
     private fun createAppButton(app: AppInfo): Button {
         val button = Button(this, null, 0, R.style.AppItemStyle)
@@ -441,6 +591,53 @@ class MainActivity : AppCompatActivity() {
         
         timeText.text = timeFormat.format(now)
         dateText.text = dateFormat.format(now)
+    }
+    
+    private fun setupBatteryMonitoring() {
+        batteryReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                // Only update battery level on significant changes
+                updateBatteryLevel()
+            }
+        }
+        
+        // Only monitor significant battery changes to reduce overhead
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_BATTERY_LOW)
+            addAction(Intent.ACTION_BATTERY_OKAY)
+            addAction(Intent.ACTION_POWER_CONNECTED)
+            addAction(Intent.ACTION_POWER_DISCONNECTED)
+        }
+        registerReceiver(batteryReceiver, filter)
+        
+        // Update battery level every 5 minutes instead of constantly
+        val batteryUpdateRunnable = object : Runnable {
+            override fun run() {
+                updateBatteryLevel()
+                clockHandler.postDelayed(this, 300000) // 5 minutes
+            }
+        }
+        clockHandler.postDelayed(batteryUpdateRunnable, 1000)
+    }
+    
+    private fun updateBatteryLevel() {
+        val batteryManager = getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+        val batteryLevel = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+        
+        if (batteryLevel != Integer.MIN_VALUE) {
+            batteryText.text = "$batteryLevel%"
+        } else {
+            // Fallback method for older devices
+            val batteryIntent = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+            batteryIntent?.let { intent ->
+                val level = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+                val scale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
+                if (level != -1 && scale != -1) {
+                    val batteryPct = (level.toFloat() / scale.toFloat() * 100).toInt()
+                    batteryText.text = "$batteryPct%"
+                }
+            }
+        }
     }
     
     private fun setupQuickActionButtons() {
@@ -529,6 +726,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
+    
     private fun openMessages() {
         try {
             val messagesIntent = Intent(Intent.ACTION_MAIN)
@@ -589,6 +787,15 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         // Stop clock updates
         clockHandler.removeCallbacks(clockRunnable)
+        
+        // Unregister battery receiver
+        batteryReceiver?.let {
+            try {
+                unregisterReceiver(it)
+            } catch (e: Exception) {
+                Log.w("MainActivity", "Error unregistering battery receiver: ${e.message}")
+            }
+        }
         
         // Stop performance monitoring
         // performanceMonitor.stopMonitoring() // Method doesn't exist

@@ -52,7 +52,11 @@ class LauncherService : Service() {
         }
         
         val filter = IntentFilter(ACTION_HOME_KEY)
-        registerReceiver(homeKeyReceiver, filter)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(homeKeyReceiver, filter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(homeKeyReceiver, filter)
+        }
     }
     
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

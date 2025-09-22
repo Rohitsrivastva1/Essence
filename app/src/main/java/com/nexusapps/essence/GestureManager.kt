@@ -126,14 +126,10 @@ class GestureManager(
     }
     
     private fun showAppDrawer() {
-        // Show all apps (not just whitelisted)
-        val allApps = appWhitelistManager.getAllInstalledApps()
-        if (allApps.isNotEmpty()) {
-            // Show categorized apps dialog
-            showCategorizedAppsDialog(allApps)
-        } else {
-            Toast.makeText(context, "No apps found", Toast.LENGTH_SHORT).show()
-        }
+        // Open full-screen dark app drawer activity
+        val intent = android.content.Intent(context, AppDrawerActivity::class.java)
+        intent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
     }
     
     private fun showAppsDialog(title: String, apps: List<AppInfo>) {
@@ -151,28 +147,28 @@ class GestureManager(
             .show()
     }
     
-    private fun showCategorizedAppsDialog(apps: List<AppInfo>) {
-        val categorizedApps = apps.groupBy { app ->
-            getAppCategory(app.packageName)
-        }.toSortedMap()
-        
-        val message = buildString {
-            categorizedApps.forEach { (category, categoryApps) ->
-                append("$category (${categoryApps.size}):\n")
-                categoryApps.take(5).forEach { app ->
-                    append("• ${app.appName}\n")
-                }
-                if (categoryApps.size > 5) {
-                    append("... and ${categoryApps.size - 5} more\n")
-                }
-                append("\n")
-            }
-        }
+    private fun showSimpleAppsList(apps: List<AppInfo>, title: String = "Apps") {
+        // Create a simple scrollable list dialog like in the second screenshot
+        val appNames = apps.map { it.appName }.toTypedArray()
         
         android.app.AlertDialog.Builder(context)
-            .setTitle("All Apps (${apps.size})")
-            .setMessage(message.trim())
-            .setPositiveButton("OK", null)
+            .setTitle("$title (${apps.size})")
+            .setItems(appNames) { dialog, which ->
+                // Launch the selected app
+                val selectedApp = apps[which]
+                try {
+                    val intent = context.packageManager.getLaunchIntentForPackage(selectedApp.packageName)
+                    if (intent != null) {
+                        context.startActivity(intent)
+                    } else {
+                        Toast.makeText(context, "Cannot launch ${selectedApp.appName}", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Error launching app", Toast.LENGTH_SHORT).show()
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton("Cancel", null)
             .show()
     }
     
@@ -208,27 +204,8 @@ class GestureManager(
     }
     
     private fun showFavoritesAndAllApps() {
-        val favorites = appWhitelistManager.getMostUsedApps(5) // Top 5 most used apps as favorites
-        val allApps = appWhitelistManager.getAllInstalledApps()
-        
-        val favoritesText = if (favorites.isNotEmpty()) {
-            "Favorites:\n" + favorites.joinToString("\n") { it.appName }
-        } else {
-            "No favorites yet"
-        }
-        
-        val allAppsText = if (allApps.isNotEmpty()) {
-            "\n\nAll Apps (${allApps.size}):\n" + allApps.take(10).joinToString("\n") { it.appName } +
-            if (allApps.size > 10) "\n... and ${allApps.size - 10} more" else ""
-        } else {
-            "\n\nNo apps found"
-        }
-        
-        android.app.AlertDialog.Builder(context)
-            .setTitle("Apps & Favorites")
-            .setMessage(favoritesText + allAppsText)
-            .setPositiveButton("OK", null)
-            .show()
+        // Open the same full-screen drawer
+        showAppDrawer()
     }
     
     private fun switchToNextFocusMode() {
