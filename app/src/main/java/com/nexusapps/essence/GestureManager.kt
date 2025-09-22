@@ -63,8 +63,8 @@ class GestureManager(
             Math.abs(diffX) > SWIPE_THRESHOLD && Math.abs(velocityX) > SWIPE_VELOCITY_THRESHOLD -> {
                 when {
                     diffX > 0 -> {
-                        // Swipe right - previous focus mode
-                        switchToPreviousFocusMode()
+                        // Swipe right - show favorites and all apps
+                        showFavoritesAndAllApps()
                     }
                     else -> {
                         // Swipe left - next focus mode
@@ -111,7 +111,52 @@ class GestureManager(
     
     private fun showAppDrawer() {
         // Show all apps (not just whitelisted)
-        Toast.makeText(context, "App Drawer: Swipe up detected", Toast.LENGTH_SHORT).show()
+        val allApps = appWhitelistManager.getAllInstalledApps()
+        if (allApps.isNotEmpty()) {
+            // Show a simple dialog with all apps
+            showAppsDialog("All Apps", allApps)
+        } else {
+            Toast.makeText(context, "No apps found", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun showAppsDialog(title: String, apps: List<AppInfo>) {
+        val appNames = apps.take(10).map { it.appName } // Show first 10 apps
+        val message = if (apps.size > 10) {
+            appNames.joinToString("\n") + "\n... and ${apps.size - 10} more"
+        } else {
+            appNames.joinToString("\n")
+        }
+        
+        android.app.AlertDialog.Builder(context)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton("OK", null)
+            .show()
+    }
+    
+    private fun showFavoritesAndAllApps() {
+        val favorites = appWhitelistManager.getMostUsedApps(5) // Top 5 most used apps as favorites
+        val allApps = appWhitelistManager.getAllInstalledApps()
+        
+        val favoritesText = if (favorites.isNotEmpty()) {
+            "Favorites:\n" + favorites.joinToString("\n") { it.appName }
+        } else {
+            "No favorites yet"
+        }
+        
+        val allAppsText = if (allApps.isNotEmpty()) {
+            "\n\nAll Apps (${allApps.size}):\n" + allApps.take(10).joinToString("\n") { it.appName } +
+            if (allApps.size > 10) "\n... and ${allApps.size - 10} more" else ""
+        } else {
+            "\n\nNo apps found"
+        }
+        
+        android.app.AlertDialog.Builder(context)
+            .setTitle("Apps & Favorites")
+            .setMessage(favoritesText + allAppsText)
+            .setPositiveButton("OK", null)
+            .show()
     }
     
     private fun switchToNextFocusMode() {

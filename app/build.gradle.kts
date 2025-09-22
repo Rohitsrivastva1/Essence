@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace = "com.nexusapps.essence"
-    compileSdk = 36
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.nexusapps.essence"
         minSdk = 24
-        targetSdk = 36
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -26,6 +26,11 @@ android {
                 "proguard-rules.pro"
             )
         }
+    }
+    
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

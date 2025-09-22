@@ -8,6 +8,8 @@
     
     <!-- System-level permissions for launcher functionality -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <application
         android:allowBackup="true"
@@ -39,12 +41,19 @@
             android:excludeFromRecents="true"
             android:clearTaskOnLaunch="false"
             android:finishOnTaskLaunch="false"
-            android:noHistory="false">
+            android:noHistory="false"
+            android:taskAffinity=""
+            android:allowTaskReparenting="false">
             <!-- Register as HOME launcher only -->
             <intent-filter android:priority="1000">
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <!-- Handle home button presses -->
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.HOME" />
             </intent-filter>
         </activity>
 
@@ -66,6 +75,18 @@
             android:enabled="true"
             android:exported="false" />
             
+        <!-- Broadcast receiver for system events -->
+        <receiver
+            android:name=".LauncherReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter android:priority="1000">
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>
