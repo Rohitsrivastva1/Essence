@@ -12,7 +12,7 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:padding="16dp"
-        android:background="@color/black">
+        android:background="@color/background_secondary">
 
         <TextView
             android:id="@+id/searchTitle"
@@ -20,7 +20,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Search Results"
-            android:textColor="@color/white"
+            android:textColor="@color/text_primary"
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -40,7 +40,7 @@
         android:id="@+id/searchResultsRecyclerView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/black" />
+        android:background="@color/background_secondary" />
 
     <!-- No Results Message -->
     <TextView

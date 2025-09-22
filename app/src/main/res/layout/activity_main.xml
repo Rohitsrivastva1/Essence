@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/black"
+    android:background="@color/background_primary"
     tools:context=".MainActivity">
 
     <!-- Clock Widget -->
@@ -25,19 +25,21 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="12:34"
-            android:textColor="@color/white"
-            android:textSize="48sp"
-            android:textStyle="bold"
-            android:fontFamily="monospace" />
+        android:textColor="@color/text_primary"
+        android:textSize="56sp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-light"
+        android:letterSpacing="0.05" />
             
         <TextView
             android:id="@+id/dateText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Monday, Jan 1"
-            android:textColor="@color/white"
-            android:textSize="16sp"
-            android:alpha="0.8" />
+        android:textColor="@color/text_secondary"
+        android:textSize="18sp"
+        android:fontFamily="sans-serif"
+        android:letterSpacing="0.02" />
     </LinearLayout>
 
     <!-- Search Bar -->
@@ -49,8 +51,9 @@
         android:layout_marginTop="32dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:background="@drawable/app_item_background"
-        android:padding="12dp"
+        android:background="@drawable/search_bar_background"
+        android:padding="16dp"
+        android:elevation="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/clockContainer">
@@ -61,7 +64,7 @@
             android:layout_height="24dp"
             android:layout_marginEnd="12dp"
             android:src="@android:drawable/ic_menu_search"
-            android:tint="@color/white" />
+            android:tint="@color/text_secondary" />
             
         <EditText
             android:id="@+id/searchEditText"
@@ -70,9 +73,10 @@
             android:layout_weight="1"
             android:background="@null"
             android:hint="Search apps..."
-            android:textColor="@color/white"
-            android:textColorHint="@color/white"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_tertiary"
             android:textSize="16sp"
+            android:fontFamily="sans-serif"
             android:inputType="text"
             android:imeOptions="actionSearch" />
             
@@ -82,7 +86,7 @@
             android:layout_height="20dp"
             android:layout_marginStart="8dp"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
-            android:tint="@color/white"
+            android:tint="@color/text_secondary"
             android:visibility="gone" />
     </LinearLayout>
 
@@ -95,7 +99,7 @@
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="@string/settings"
         android:src="@drawable/ic_settings"
-        android:tint="@color/white"
+        android:tint="@color/text_secondary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -128,8 +132,8 @@
         android:layout_margin="32dp"
         android:gravity="center"
         android:text="@string/no_apps_selected"
-        android:textColor="@color/white"
-        android:textSize="16sp"
+        android:textColor="@color/text_secondary"
+        android:textSize="18sp"
         android:visibility="gone"
         app:layout_constraintBottom_toTopOf="@id/quickActionsContainer1"
         app:layout_constraintEnd_toEndOf="parent"
@@ -154,41 +158,44 @@
         <Button
             android:id="@+id/callButton"
             android:layout_width="0dp"
-            android:layout_height="64dp"
+            android:layout_height="72dp"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
             android:background="@drawable/app_item_background"
             android:text="📞"
-            android:textSize="24sp"
-            android:textColor="@color/white"
-            android:contentDescription="Call" />
+            android:textSize="28sp"
+            android:textColor="@color/text_primary"
+            android:contentDescription="Call"
+            android:elevation="2dp" />
             
         <!-- Camera Button -->
         <Button
             android:id="@+id/cameraButton"
             android:layout_width="0dp"
-            android:layout_height="64dp"
+            android:layout_height="72dp"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:background="@drawable/app_item_background"
             android:text="📷"
-            android:textSize="24sp"
-            android:textColor="@color/white"
-            android:contentDescription="Camera" />
+            android:textSize="28sp"
+            android:textColor="@color/text_primary"
+            android:contentDescription="Camera"
+            android:elevation="2dp" />
             
         <!-- Messages Button -->
         <Button
             android:id="@+id/messagesButton"
             android:layout_width="0dp"
-            android:layout_height="64dp"
+            android:layout_height="72dp"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
             android:background="@drawable/app_item_background"
             android:text="💬"
-            android:textSize="24sp"
-            android:textColor="@color/white"
-            android:contentDescription="Messages" />
+            android:textSize="28sp"
+            android:textColor="@color/text_primary"
+            android:contentDescription="Messages"
+            android:elevation="2dp" />
     </LinearLayout>
     
     <!-- Quick Action Buttons Row 2 -->
@@ -210,41 +217,44 @@
         <Button
             android:id="@+id/browserButton"
             android:layout_width="0dp"
-            android:layout_height="64dp"
+            android:layout_height="72dp"
             android:layout_weight="1"
             android:layout_marginEnd="8dp"
             android:background="@drawable/app_item_background"
             android:text="🌐"
-            android:textSize="24sp"
-            android:textColor="@color/white"
-            android:contentDescription="Browser" />
+            android:textSize="28sp"
+            android:textColor="@color/text_primary"
+            android:contentDescription="Browser"
+            android:elevation="2dp" />
             
         <!-- Calculator Button -->
         <Button
             android:id="@+id/calculatorButton"
             android:layout_width="0dp"
-            android:layout_height="64dp"
+            android:layout_height="72dp"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:background="@drawable/app_item_background"
             android:text="🧮"
-            android:textSize="24sp"
-            android:textColor="@color/white"
-            android:contentDescription="Calculator" />
+            android:textSize="28sp"
+            android:textColor="@color/text_primary"
+            android:contentDescription="Calculator"
+            android:elevation="2dp" />
             
         <!-- Settings Button -->
         <Button
             android:id="@+id/settingsQuickButton"
             android:layout_width="0dp"
-            android:layout_height="64dp"
+            android:layout_height="72dp"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
             android:background="@drawable/app_item_background"
             android:text="⚙️"
-            android:textSize="24sp"
-            android:textColor="@color/white"
-            android:contentDescription="Settings" />
+            android:textSize="28sp"
+            android:textColor="@color/text_primary"
+            android:contentDescription="Settings"
+            android:elevation="2dp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
