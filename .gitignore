@@ -13,3 +13,50 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Large files and archives
+*.zip
+*.tar.gz
+*.tar.bz2
+*.rar
+*.7z
+*.apk
+*.aab
+*.jar
+*.war
+*.ear
+
+# Android specific large files
+*.dex
+*.so
+*.a
+*.lib
+
+# SDK and tools
+android-sdk/
+sdk/
+commandlinetools-*
+platform-tools/
+
+# Build outputs
+app/build/
+build/
+*.apk
+*.aab
+
+# IDE and OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
