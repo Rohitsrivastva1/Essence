@@ -48,7 +48,9 @@ import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
     private lateinit var appWhitelistManager: AppWhitelistManager
-    private lateinit var appsContainer: LinearLayout
+    private lateinit var themeManager: ThemeManager
+    private lateinit var wallpaperManager: WallpaperManager
+    private lateinit var appsContainer: android.view.ViewGroup
     private lateinit var emptyStateText: TextView
     private lateinit var settingsButton: View
     private lateinit var gestureManager: GestureManager
@@ -62,6 +64,7 @@ class MainActivity : AppCompatActivity() {
     private var lastAppRefresh: Long = 0
     private lateinit var callButton: ImageButton
     private lateinit var cameraButton: ImageButton
+    private lateinit var wellbeingButton: ImageButton
     private lateinit var messagesButton: Button
     private lateinit var browserButton: Button
     private lateinit var calculatorButton: Button
@@ -122,6 +125,18 @@ class MainActivity : AppCompatActivity() {
         
         // Initialize components
         appWhitelistManager = AppWhitelistManager(this)
+        themeManager = ThemeManager(this)
+        wallpaperManager = WallpaperManager(this)
+        
+        // Apply current theme
+        themeManager.applyTheme(this)
+        
+        // Apply wallpaper
+        applyWallpaper()
+        
+        // Apply current customization settings
+        applyCustomizationSettings()
+        
         appsContainer = findViewById(R.id.appsContainer)
         emptyStateText = findViewById(R.id.emptyStateText)
         settingsButton = findViewById(R.id.settingsButton)
@@ -131,6 +146,7 @@ class MainActivity : AppCompatActivity() {
         favoriteAppsContainer = findViewById(R.id.favoriteAppsContainer)
         callButton = findViewById(R.id.callButton)
         cameraButton = findViewById(R.id.cameraButton)
+        wellbeingButton = findViewById(R.id.wellbeingButton)
         messagesButton = findViewById(R.id.messagesButton)
         browserButton = findViewById(R.id.browserButton)
         calculatorButton = findViewById(R.id.calculatorButton)
@@ -202,8 +218,10 @@ class MainActivity : AppCompatActivity() {
         val serviceIntent = Intent(this, LauncherService::class.java)
         startService(serviceIntent)
         
-        // Note: On Android 10+ with gesture navigation, users can still exit using gestures
-        // This is a system limitation that cannot be fully prevented
+        // Note: On Android 10+ with gesture navigation, users can still exit using system gestures
+        // This is a system limitation that cannot be fully prevented. The LauncherService will
+        // attempt to bring the launcher back to front when HOME is pressed, but gesture navigation
+        // bypasses traditional key event handling. This works better with 3-button navigation.
     }
     
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
@@ -214,14 +232,9 @@ class MainActivity : AppCompatActivity() {
                     handleBackPress()
                     return true
                 }
-                KeyEvent.KEYCODE_HOME -> {
-                    // Prevent home button from working
-                    return true
-                }
-                KeyEvent.KEYCODE_APP_SWITCH -> {
-                    // Prevent recent apps button from working
-                    return true
-                }
+                // Note: HOME and APP_SWITCH key handling removed for Android 10+ compatibility
+                // On Android 10+ with gesture navigation, onKeyDown cannot intercept HOME/Recents
+                // The LauncherService handles bringing the launcher back to front instead
             }
         }
         return super.onKeyDown(keyCode, event)
@@ -267,9 +280,8 @@ class MainActivity : AppCompatActivity() {
             ensureLauncherMode()
         }
         
-        // Refresh the app list when returning from settings
-        loadWhitelistedApps()
-        loadFavoriteApps()
+        // Refresh the app list and customization settings when returning from settings
+        refreshCustomizationSettings()
     }
     
     private fun ensureLauncherMode() {
@@ -296,9 +308,9 @@ class MainActivity : AppCompatActivity() {
         Log.d("Essence", "onNewIntent: ${intent?.action}, categories: ${intent?.categories}")
         
         // Handle new intents when app is already running
-        if (intent != null && intent.hasCategory(Intent.CATEGORY_HOME)) {
-            // This is a home intent - ensure we're visible and focused
-            Log.d("Essence", "HOME intent received - ensuring visibility")
+        if (intent != null && (intent.hasCategory(Intent.CATEGORY_HOME) || intent.getBooleanExtra("from_service", false))) {
+            // This is a home intent or from service - ensure we're visible and focused
+            Log.d("Essence", "HOME intent or service intent received - ensuring visibility")
             window.decorView.visibility = View.VISIBLE
             findViewById<View>(R.id.main)?.visibility = View.VISIBLE
             // Don't call moveTaskToBack() - keep the launcher visible
@@ -670,6 +682,11 @@ class MainActivity : AppCompatActivity() {
         settingsQuickButton.setOnClickListener {
             openSettings()
         }
+        
+        // Digital Wellbeing button
+        wellbeingButton.setOnClickListener {
+            openDigitalWellbeing()
+        }
     }
     
     private fun setupSearch() {
@@ -782,6 +799,15 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Cannot open settings", Toast.LENGTH_SHORT).show()
         }
     }
+    
+    private fun openDigitalWellbeing() {
+        try {
+            val wellbeingIntent = Intent(this, SimpleDigitalWellbeingActivity::class.java)
+            startActivity(wellbeingIntent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Cannot open Digital Wellbeing", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     override fun onDestroy() {
         super.onDestroy()
@@ -880,4 +906,152 @@ class MainActivity : AppCompatActivity() {
     
     // Note: onTaskRemoved is not available for Activity, only for Service
     // This functionality should be moved to LauncherService if needed
+    
+    /**
+     * Apply wallpaper to the main view
+     */
+    private fun applyWallpaper() {
+        val mainView = findViewById<View>(R.id.main)
+        wallpaperManager.applyWallpaperToView(mainView)
+    }
+    
+    /**
+     * Apply current customization settings from ThemeManager
+     */
+    private fun applyCustomizationSettings() {
+        applyFontSizeSettings()
+        applyIconSizeSettings()
+        applyGridDensitySettings()
+        applyAccentColorSettings()
+    }
+    
+    /**
+     * Apply font size settings to UI elements
+     */
+    private fun applyFontSizeSettings() {
+        val fontSize = themeManager.getCurrentFontSize()
+        val scale = fontSize.scale
+        
+        // Apply to clock text
+        timeText.textSize = 48f * scale
+        dateText.textSize = 16f * scale
+        
+        // Apply to battery text
+        batteryText.textSize = 14f * scale
+        
+        // Apply to empty state text
+        emptyStateText.textSize = 16f * scale
+        
+        // Apply to favorite apps text
+        applyFontSizeToContainer(favoriteAppsContainer, 16f * scale)
+    }
+    
+    /**
+     * Apply icon size settings to UI elements
+     */
+    private fun applyIconSizeSettings() {
+        val iconSize = themeManager.getCurrentIconSize()
+        val scale = iconSize.scale
+        
+        // Apply to quick action buttons
+        val quickActionButtons = listOf(callButton, cameraButton)
+        quickActionButtons.forEach { button ->
+            val layoutParams = button.layoutParams
+            layoutParams.width = (64 * scale).toInt()
+            layoutParams.height = (64 * scale).toInt()
+            button.layoutParams = layoutParams
+        }
+        
+        // Apply to other buttons
+        val otherButtons = listOf(messagesButton, browserButton, calculatorButton, settingsQuickButton)
+        otherButtons.forEach { button ->
+            val layoutParams = button.layoutParams
+            layoutParams.height = (48 * scale).toInt()
+            button.layoutParams = layoutParams
+        }
+    }
+    
+    /**
+     * Apply grid density settings to app container
+     */
+    private fun applyGridDensitySettings() {
+        val gridDensity = themeManager.getCurrentGridDensity()
+        
+        // Update app container layout based on grid density
+        when (gridDensity) {
+            ThemeManager.GridDensity.COMPACT -> {
+                // 4 columns, 6 rows - more apps per screen
+                updateAppContainerLayout(4, 6)
+            }
+            ThemeManager.GridDensity.NORMAL -> {
+                // 3 columns, 5 rows - balanced layout
+                updateAppContainerLayout(3, 5)
+            }
+            ThemeManager.GridDensity.SPACIOUS -> {
+                // 3 columns, 4 rows - more spacing
+                updateAppContainerLayout(3, 4)
+            }
+        }
+    }
+    
+    /**
+     * Update app container layout based on grid density
+     */
+    private fun updateAppContainerLayout(columns: Int, rows: Int) {
+        // Convert LinearLayout to GridLayout for better control
+        if (appsContainer is LinearLayout) {
+            val gridLayout = android.widget.GridLayout(this).apply {
+                id = appsContainer.id
+                layoutParams = appsContainer.layoutParams
+                columnCount = columns
+                rowCount = rows
+                useDefaultMargins = true
+            }
+            
+            // Replace the container
+            val parent = appsContainer.parent as android.view.ViewGroup
+            val index = parent.indexOfChild(appsContainer)
+            parent.removeView(appsContainer)
+            parent.addView(gridLayout, index)
+            
+            // Update reference
+            appsContainer = gridLayout
+        }
+    }
+    
+    /**
+     * Apply accent color settings to UI elements
+     */
+    private fun applyAccentColorSettings() {
+        val accentColor = themeManager.getAccentColorValue()
+        
+        // Apply accent color to various UI elements
+        // This would typically involve updating drawable resources or programmatically setting colors
+        // For now, we'll apply it to the clock text as an example
+        timeText.setTextColor(accentColor)
+    }
+    
+    /**
+     * Apply font size to all TextViews in a container
+     */
+    private fun applyFontSizeToContainer(container: android.view.ViewGroup, textSize: Float) {
+        for (i in 0 until container.childCount) {
+            val child = container.getChildAt(i)
+            if (child is TextView) {
+                child.textSize = textSize
+            } else if (child is android.view.ViewGroup) {
+                applyFontSizeToContainer(child, textSize)
+            }
+        }
+    }
+    
+    /**
+     * Refresh customization settings (called when returning from settings)
+     */
+    private fun refreshCustomizationSettings() {
+        applyWallpaper()
+        applyCustomizationSettings()
+        loadWhitelistedApps()
+        loadFavoriteApps()
+    }
 }

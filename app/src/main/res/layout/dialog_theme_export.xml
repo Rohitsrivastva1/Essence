@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/card_background">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Export Theme"
+        android:textColor="@color/dark_text_primary"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Enter a name for your theme:"
+        android:textColor="@color/dark_text_secondary"
+        android:textSize="14sp"
+        android:layout_marginBottom="8dp" />
+
+    <EditText
+        android:id="@+id/themeNameEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="My Custom Theme"
+        android:textColor="@color/dark_text_primary"
+        android:textColorHint="@color/dark_text_tertiary"
+        android:background="@drawable/search_background"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="This will export all your current theme settings including:"
+        android:textColor="@color/dark_text_secondary"
+        android:textSize="12sp"
+        android:layout_marginBottom="8dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="• Theme colors and accent colors"
+        android:textColor="@color/dark_text_tertiary"
+        android:textSize="12sp"
+        android:layout_marginBottom="2dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="• Font sizes and grid density"
+        android:textColor="@color/dark_text_tertiary"
+        android:textSize="12sp"
+        android:layout_marginBottom="2dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="• Wallpaper and overlay settings"
+        android:textColor="@color/dark_text_tertiary"
+        android:textSize="12sp"
+        android:layout_marginBottom="2dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="• Animation settings"
+        android:textColor="@color/dark_text_tertiary"
+        android:textSize="12sp"
+        android:layout_marginBottom="2dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="• Icon pack and styling"
+        android:textColor="@color/dark_text_tertiary"
+        android:textSize="12sp"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/exportButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Export Theme"
+        android:background="@drawable/button_background"
+        android:textColor="@color/dark_text_primary" />
+
+</LinearLayout>

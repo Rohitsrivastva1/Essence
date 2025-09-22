@@ -168,6 +168,20 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Digital Wellbeing Button - Bottom Center -->
+    <ImageButton
+        android:id="@+id/wellbeingButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginBottom="52dp"
+        android:background="@drawable/circular_button_background"
+        android:contentDescription="Digital Wellbeing"
+        android:src="@android:drawable/ic_menu_manage"
+        android:tint="#FFFFFF"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/cameraButton"
+        app:layout_constraintStart_toEndOf="@id/callButton" />
+
     <!-- Hidden buttons for compatibility -->
     <Button
         android:id="@+id/messagesButton"

@@ -1,37 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Primary Colors -->
+    <!-- Base Colors -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00000000</color>
     
-    <!-- Premium Dark Theme -->
+    <!-- ===== DARK THEME COLORS ===== -->
+    <color name="dark_primary">#FF121212</color>
+    <color name="dark_secondary">#FF1E1E1E</color>
+    <color name="dark_surface">#FF1E1E1E</color>
+    <color name="dark_background">#FF000000</color>
+    <color name="dark_text_primary">#FFFFFFFF</color>
+    <color name="dark_text_secondary">#FFB3B3B3</color>
+    <color name="dark_text_tertiary">#FF757575</color>
+    <color name="dark_accent">#FF2196F3</color>
+    
+    <!-- ===== LIGHT THEME COLORS ===== -->
+    <color name="light_primary">#FFFFFFFF</color>
+    <color name="light_secondary">#FFF5F5F5</color>
+    <color name="light_surface">#FFFFFFFF</color>
+    <color name="light_background">#FFFFFFFF</color>
+    <color name="light_text_primary">#FF212121</color>
+    <color name="light_text_secondary">#FF757575</color>
+    <color name="light_text_tertiary">#FF9E9E9E</color>
+    <color name="light_accent">#FF1976D2</color>
+    
+    <!-- ===== HIGH CONTRAST THEME COLORS ===== -->
+    <color name="hc_primary">#FF000000</color>
+    <color name="hc_secondary">#FFFFFFFF</color>
+    <color name="hc_surface">#FF000000</color>
+    <color name="hc_background">#FF000000</color>
+    <color name="hc_text_primary">#FFFFFFFF</color>
+    <color name="hc_text_secondary">#FFCCCCCC</color>
+    <color name="hc_text_tertiary">#FF999999</color>
+    <color name="hc_accent">#FF00FF00</color>
+    
+    <!-- ===== AMOLED BLACK THEME COLORS ===== -->
+    <color name="amoled_primary">#FF000000</color>
+    <color name="amoled_secondary">#FF000000</color>
+    <color name="amoled_surface">#FF000000</color>
+    <color name="amoled_background">#FF000000</color>
+    <color name="amoled_text_primary">#FFFFFFFF</color>
+    <color name="amoled_text_secondary">#FF888888</color>
+    <color name="amoled_text_tertiary">#FF555555</color>
+    <color name="amoled_accent">#FF00FFFF</color>
+    
+    <!-- ===== ACCENT COLORS ===== -->
+    <color name="accent_blue">#FF2196F3</color>
+    <color name="accent_green">#FF4CAF50</color>
+    <color name="accent_purple">#FF9C27B0</color>
+    <color name="accent_orange">#FFFF9800</color>
+    <color name="accent_red">#FFF44336</color>
+    <color name="accent_cyan">#FF00BCD4</color>
+    <color name="accent_teal">#FF009688</color>
+    <color name="accent_pink">#FFE91E63</color>
+    
+    <!-- ===== LEGACY COLORS (for backward compatibility) ===== -->
     <color name="premium_black">#FF0A0A0A</color>
     <color name="premium_dark_gray">#FF1A1A1A</color>
     <color name="premium_medium_gray">#FF2A2A2A</color>
     <color name="premium_light_gray">#FF3A3A3A</color>
     
-    <!-- Accent Colors -->
-    <color name="accent_blue">#FF007AFF</color>
-    <color name="accent_green">#FF34C759</color>
-    <color name="accent_orange">#FFFF9500</color>
-    <color name="accent_red">#FFFF3B30</color>
-    
-    <!-- Text Colors -->
+    <!-- ===== TEXT COLORS (legacy) ===== -->
     <color name="text_primary">#FFFFFFFF</color>
     <color name="text_secondary">#FF8E8E93</color>
     <color name="text_tertiary">#FF6D6D70</color>
     
-    <!-- Background Colors -->
+    <!-- ===== BACKGROUND COLORS (legacy) ===== -->
     <color name="background_primary">#FF000000</color>
     <color name="background_secondary">#FF1C1C1E</color>
     <color name="background_tertiary">#FF2C2C2E</color>
     
-    <!-- Card Colors -->
+    <!-- ===== CARD COLORS (legacy) ===== -->
     <color name="card_background">#FF1C1C1E</color>
     <color name="card_elevated">#FF2C2C2E</color>
     
-    <!-- Overlay Colors -->
+    <!-- ===== OVERLAY COLORS ===== -->
     <color name="overlay_light">#1AFFFFFF</color>
     <color name="overlay_medium">#33FFFFFF</color>
     <color name="overlay_dark">#66FFFFFF</color>
+    <color name="overlay_black_light">#1A000000</color>
+    <color name="overlay_black_medium">#33000000</color>
+    <color name="overlay_black_dark">#66000000</color>
 </resources>

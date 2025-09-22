@@ -66,6 +66,7 @@ class AppWhitelistManager(private val context: Context) {
         val currentWhitelist = getWhitelistedPackages().toMutableSet()
         currentWhitelist.add(packageName)
         saveWhitelist(currentWhitelist)
+        notifyWhitelistChanged()
     }
 
     /**
@@ -75,6 +76,7 @@ class AppWhitelistManager(private val context: Context) {
         val currentWhitelist = getWhitelistedPackages().toMutableSet()
         currentWhitelist.remove(packageName)
         saveWhitelist(currentWhitelist)
+        notifyWhitelistChanged()
     }
 
     /**
@@ -231,6 +233,7 @@ class AppWhitelistManager(private val context: Context) {
      */
     fun clearWhitelist() {
         prefs.edit().remove(WHITELIST_KEY).apply()
+        notifyWhitelistChanged()
     }
     
     // Focus Mode Management
@@ -403,5 +406,57 @@ class AppWhitelistManager(private val context: Context) {
             setTheme(theme)
             setGrayscaleMode(grayscale)
         }
+    }
+    
+    // Enhanced JSON export/import for better backup/restore
+    fun exportSettingsToJson(): org.json.JSONObject {
+        return org.json.JSONObject().apply {
+            put("whitelistedApps", getWhitelistedPackages().toList())
+            put("focusMode", getCurrentFocusMode())
+            put("theme", getCurrentTheme())
+            put("grayscaleMode", isGrayscaleModeEnabled())
+            put("timestamp", System.currentTimeMillis())
+            put("version", "1.0")
+        }
+    }
+    
+    fun importSettingsFromJson(json: org.json.JSONObject) {
+        try {
+            // Import whitelisted apps
+            val whitelistedApps = json.getJSONArray("whitelistedApps")
+            val whitelistSet = mutableSetOf<String>()
+            for (i in 0 until whitelistedApps.length()) {
+                whitelistSet.add(whitelistedApps.getString(i))
+            }
+            
+            // Clear current whitelist and add imported apps
+            clearWhitelist()
+            whitelistSet.forEach { packageName ->
+                addToWhitelist(packageName)
+            }
+            
+            // Import other settings
+            if (json.has("focusMode")) {
+                setFocusMode(json.getString("focusMode"))
+            }
+            if (json.has("theme")) {
+                setTheme(json.getString("theme"))
+            }
+            if (json.has("grayscaleMode")) {
+                setGrayscaleMode(json.getBoolean("grayscaleMode"))
+            }
+        } catch (e: Exception) {
+            throw IllegalArgumentException("Invalid JSON format: ${e.message}")
+        }
+    }
+    
+    // LiveData for reactive UI updates
+    fun getWhitelistedAppsLiveData(): LiveData<List<AppInfo>> {
+        return whitelistedApps
+    }
+    
+    // Notify observers when whitelist changes
+    private fun notifyWhitelistChanged() {
+        _whitelistedApps.postValue(getWhitelistedApps())
     }
 }

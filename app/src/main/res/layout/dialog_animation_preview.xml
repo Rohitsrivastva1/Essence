@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="@drawable/card_background">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Animation Preview"
+        android:textColor="@color/dark_text_primary"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Animation Settings Display -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:id="@+id/speedText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Speed: Normal"
+            android:textColor="@color/dark_text_secondary"
+            android:textSize="14sp"
+            android:layout_marginBottom="4dp" />
+
+        <TextView
+            android:id="@+id/styleText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Style: Smooth"
+            android:textColor="@color/dark_text_secondary"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
+    <!-- Preview Button -->
+    <Button
+        android:id="@+id/previewAnimationButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tap to Preview Animation"
+        android:background="@drawable/button_background"
+        android:textColor="@color/dark_text_primary"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Animation Types -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Available Animation Types:"
+            android:textColor="@color/dark_text_primary"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="• Scale: Icons grow and shrink"
+            android:textColor="@color/dark_text_secondary"
+            android:textSize="12sp"
+            android:layout_marginBottom="2dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="• Rotate: Icons spin 360°"
+            android:textColor="@color/dark_text_secondary"
+            android:textSize="12sp"
+            android:layout_marginBottom="2dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="• Bounce: Icons bounce up and down"
+            android:textColor="@color/dark_text_secondary"
+            android:textSize="12sp"
+            android:layout_marginBottom="2dp" />
+
+    </LinearLayout>
+
+</LinearLayout>
