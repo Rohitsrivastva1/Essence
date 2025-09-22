@@ -134,9 +134,6 @@ class MainActivity : AppCompatActivity() {
         // Apply wallpaper
         applyWallpaper()
         
-        // Apply current customization settings
-        applyCustomizationSettings()
-        
         appsContainer = findViewById(R.id.appsContainer)
         emptyStateText = findViewById(R.id.emptyStateText)
         settingsButton = findViewById(R.id.settingsButton)
@@ -156,6 +153,9 @@ class MainActivity : AppCompatActivity() {
         clearSearchIcon = findViewById(R.id.clearSearchIcon)
         gestureManager = GestureManager(this, appWhitelistManager)
         performanceMonitor = PerformanceMonitor(this)
+        
+        // Apply current customization settings (after views are initialized)
+        applyCustomizationSettings()
         
         // Set up window insets
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -933,17 +933,27 @@ class MainActivity : AppCompatActivity() {
         val scale = fontSize.scale
         
         // Apply to clock text
-        timeText.textSize = 48f * scale
-        dateText.textSize = 16f * scale
+        if (this::timeText.isInitialized) {
+            timeText.textSize = 48f * scale
+        }
+        if (this::dateText.isInitialized) {
+            dateText.textSize = 16f * scale
+        }
         
         // Apply to battery text
-        batteryText.textSize = 14f * scale
+        if (this::batteryText.isInitialized) {
+            batteryText.textSize = 14f * scale
+        }
         
         // Apply to empty state text
-        emptyStateText.textSize = 16f * scale
+        if (this::emptyStateText.isInitialized) {
+            emptyStateText.textSize = 16f * scale
+        }
         
         // Apply to favorite apps text
-        applyFontSizeToContainer(favoriteAppsContainer, 16f * scale)
+        if (this::favoriteAppsContainer.isInitialized) {
+            applyFontSizeToContainer(favoriteAppsContainer, 16f * scale)
+        }
     }
     
     /**
