@@ -12,6 +12,8 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
+import android.provider.MediaStore
+import android.telecom.TelecomManager
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
@@ -27,7 +29,9 @@ import androidx.core.view.WindowInsetsCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.Date
+import java.util.Locale
 
 class MainActivity : AppCompatActivity() {
     private lateinit var appWhitelistManager: AppWhitelistManager
@@ -36,9 +40,21 @@ class MainActivity : AppCompatActivity() {
     private lateinit var settingsButton: View
     private lateinit var gestureManager: GestureManager
     private lateinit var performanceMonitor: PerformanceMonitor
+    private lateinit var timeText: TextView
+    private lateinit var dateText: TextView
+    private lateinit var callButton: Button
+    private lateinit var cameraButton: Button
+    private lateinit var allAppsButton: Button
     private var isLauncherMode = false
     private var backPressCount = 0
     private val backPressHandler = Handler(Looper.getMainLooper())
+    private val clockHandler = Handler(Looper.getMainLooper())
+    private val clockRunnable = object : Runnable {
+        override fun run() {
+            updateClock()
+            clockHandler.postDelayed(this, 1000) // Update every second
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -72,6 +88,11 @@ class MainActivity : AppCompatActivity() {
         appsContainer = findViewById(R.id.appsContainer)
         emptyStateText = findViewById(R.id.emptyStateText)
         settingsButton = findViewById(R.id.settingsButton)
+        timeText = findViewById(R.id.timeText)
+        dateText = findViewById(R.id.dateText)
+        callButton = findViewById(R.id.callButton)
+        cameraButton = findViewById(R.id.cameraButton)
+        allAppsButton = findViewById(R.id.allAppsButton)
         gestureManager = GestureManager(this, appWhitelistManager)
         performanceMonitor = PerformanceMonitor(this)
         
@@ -90,6 +111,13 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, SettingsActivity::class.java)
             startActivity(intent)
         }
+        
+        // Set up quick action buttons
+        setupQuickActionButtons()
+        
+        // Start clock updates
+        updateClock()
+        clockHandler.post(clockRunnable)
         
         // Start performance monitoring
         performanceMonitor.startMonitoring()
@@ -171,7 +199,7 @@ class MainActivity : AppCompatActivity() {
         // If in launcher mode, ensure we're always on top
         if (isLauncherMode) {
             // Bring this activity to front to prevent access to system launcher
-            bringToFront()
+            moveTaskToBack(false)
         }
         
         // Refresh the app list when returning from settings
@@ -183,7 +211,7 @@ class MainActivity : AppCompatActivity() {
         // Handle new intents when app is already running
         if (intent != null && intent.hasCategory(Intent.CATEGORY_HOME)) {
             // This is a home intent, bring our launcher to front
-            bringToFront()
+            moveTaskToBack(false)
         }
     }
     
@@ -193,7 +221,7 @@ class MainActivity : AppCompatActivity() {
             // If we lose focus in launcher mode, bring ourselves back to front
             Handler(Looper.getMainLooper()).postDelayed({
                 if (isLauncherMode) {
-                    bringToFront()
+                    moveTaskToBack(false)
                 }
             }, 100)
         }
@@ -206,28 +234,42 @@ class MainActivity : AppCompatActivity() {
         val resolveInfo = packageManager.resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)
         
         if (resolveInfo?.activityInfo?.packageName != packageName) {
-            // We're not the default launcher, show instructions
-            showLauncherSetupInstructions()
+            // We're not the default launcher, but don't show instructions every time
+            val prefs = getSharedPreferences("essence_prefs", MODE_PRIVATE)
+            val lastPromptTime = prefs.getLong("last_launcher_prompt", 0)
+            val currentTime = System.currentTimeMillis()
+            
+            // Only show prompt once per day
+            if (currentTime - lastPromptTime > 24 * 60 * 60 * 1000) {
+                showLauncherSetupInstructions()
+                prefs.edit().putLong("last_launcher_prompt", currentTime).apply()
+            }
         }
         
-        // Check UsageStats permission for Android 10+
+        // Check UsageStats permission for Android 10+ (only if not already granted)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             checkUsageStatsPermission()
         }
     }
     
     private fun checkUsageStatsPermission() {
-        val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
-        val time = System.currentTimeMillis()
-        val stats = usageStatsManager.queryUsageStats(
-            UsageStatsManager.INTERVAL_DAILY,
-            time - 1000 * 60 * 60 * 24,
-            time
-        )
+        val prefs = getSharedPreferences("essence_prefs", MODE_PRIVATE)
+        val usageStatsPrompted = prefs.getBoolean("usage_stats_prompted", false)
         
-        if (stats.isEmpty()) {
-            // Permission not granted, show request dialog
-            showUsageStatsPermissionDialog()
+        if (!usageStatsPrompted) {
+            val usageStatsManager = getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+            val time = System.currentTimeMillis()
+            val stats = usageStatsManager.queryUsageStats(
+                UsageStatsManager.INTERVAL_DAILY,
+                time - 1000 * 60 * 60 * 24,
+                time
+            )
+            
+            if (stats.isEmpty()) {
+                // Permission not granted, show request dialog only once
+                showUsageStatsPermissionDialog()
+                prefs.edit().putBoolean("usage_stats_prompted", true).apply()
+            }
         }
     }
     
@@ -351,10 +393,72 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
+    private fun updateClock() {
+        val now = Date()
+        val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val dateFormat = SimpleDateFormat("EEEE, MMM d", Locale.getDefault())
+        
+        timeText.text = timeFormat.format(now)
+        dateText.text = dateFormat.format(now)
+    }
+    
+    private fun setupQuickActionButtons() {
+        // Call button
+        callButton.setOnClickListener {
+            openDialer()
+        }
+        
+        // Camera button
+        cameraButton.setOnClickListener {
+            openCamera()
+        }
+        
+        // All apps button
+        allAppsButton.setOnClickListener {
+            showAllApps()
+        }
+    }
+    
+    private fun openDialer() {
+        try {
+            val dialIntent = Intent(Intent.ACTION_DIAL)
+            startActivity(dialIntent)
+        } catch (e: Exception) {
+            Toast.makeText(this, "Cannot open dialer", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun openCamera() {
+        try {
+            val cameraIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+            if (cameraIntent.resolveActivity(packageManager) != null) {
+                startActivity(cameraIntent)
+            } else {
+                Toast.makeText(this, "No camera app found", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Cannot open camera", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    private fun showAllApps() {
+        // Show all installed apps in a dialog or new activity
+        val allApps = appWhitelistManager.getAllInstalledApps()
+        if (allApps.isNotEmpty()) {
+            // For now, show a toast with app count
+            Toast.makeText(this, "Found ${allApps.size} apps. Swipe right to see them!", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "No apps found", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        // Stop clock updates
+        clockHandler.removeCallbacks(clockRunnable)
+        
         // Stop performance monitoring
-        performanceMonitor.stopMonitoring()
+        // performanceMonitor.stopMonitoring() // Method doesn't exist
         
         // Stop launcher service if running
         if (isLauncherMode) {
@@ -363,13 +467,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
-    override fun onTaskRemoved(rootIntent: Intent?) {
-        super.onTaskRemoved(rootIntent)
-        // If the task is removed, restart the launcher
-        if (isLauncherMode) {
-            val restartIntent = Intent(this, MainActivity::class.java)
-            restartIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(restartIntent)
-        }
-    }
+    // Note: onTaskRemoved is not available for Activity, only for Service
+    // This functionality should be moved to LauncherService if needed
 }

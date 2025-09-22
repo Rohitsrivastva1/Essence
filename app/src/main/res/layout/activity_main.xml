@@ -8,6 +8,38 @@
     android:background="@color/black"
     tools:context=".MainActivity">
 
+    <!-- Clock Widget -->
+    <LinearLayout
+        android:id="@+id/clockContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+        
+        <TextView
+            android:id="@+id/timeText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="12:34"
+            android:textColor="@color/white"
+            android:textSize="48sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace" />
+            
+        <TextView
+            android:id="@+id/dateText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Monday, Jan 1"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            android:alpha="0.8" />
+    </LinearLayout>
+
     <!-- Settings button -->
     <ImageButton
         android:id="@+id/settingsButton"
@@ -53,9 +85,64 @@
         android:textColor="@color/white"
         android:textSize="16sp"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/quickActionsContainer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Quick Actions Container -->
+    <LinearLayout
+        android:id="@+id/quickActionsContainer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_marginBottom="32dp"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:weightSum="3"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+        
+        <!-- Call Button -->
+        <Button
+            android:id="@+id/callButton"
+            android:layout_width="0dp"
+            android:layout_height="64dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/app_item_background"
+            android:text="📞"
+            android:textSize="24sp"
+            android:textColor="@color/white"
+            android:contentDescription="Call" />
+            
+        <!-- Camera Button -->
+        <Button
+            android:id="@+id/cameraButton"
+            android:layout_width="0dp"
+            android:layout_height="64dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/app_item_background"
+            android:text="📷"
+            android:textSize="24sp"
+            android:textColor="@color/white"
+            android:contentDescription="Camera" />
+            
+        <!-- All Apps Button -->
+        <Button
+            android:id="@+id/allAppsButton"
+            android:layout_width="0dp"
+            android:layout_height="64dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/app_item_background"
+            android:text="📱"
+            android:textSize="24sp"
+            android:textColor="@color/white"
+            android:contentDescription="All Apps" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
