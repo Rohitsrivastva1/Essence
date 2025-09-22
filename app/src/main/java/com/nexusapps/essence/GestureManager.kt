@@ -129,8 +129,8 @@ class GestureManager(
         // Show all apps (not just whitelisted)
         val allApps = appWhitelistManager.getAllInstalledApps()
         if (allApps.isNotEmpty()) {
-            // Show a simple dialog with all apps
-            showAppsDialog("All Apps", allApps)
+            // Show categorized apps dialog
+            showCategorizedAppsDialog(allApps)
         } else {
             Toast.makeText(context, "No apps found", Toast.LENGTH_SHORT).show()
         }
@@ -149,6 +149,62 @@ class GestureManager(
             .setMessage(message)
             .setPositiveButton("OK", null)
             .show()
+    }
+    
+    private fun showCategorizedAppsDialog(apps: List<AppInfo>) {
+        val categorizedApps = apps.groupBy { app ->
+            getAppCategory(app.packageName)
+        }.toSortedMap()
+        
+        val message = buildString {
+            categorizedApps.forEach { (category, categoryApps) ->
+                append("$category (${categoryApps.size}):\n")
+                categoryApps.take(5).forEach { app ->
+                    append("• ${app.appName}\n")
+                }
+                if (categoryApps.size > 5) {
+                    append("... and ${categoryApps.size - 5} more\n")
+                }
+                append("\n")
+            }
+        }
+        
+        android.app.AlertDialog.Builder(context)
+            .setTitle("All Apps (${apps.size})")
+            .setMessage(message.trim())
+            .setPositiveButton("OK", null)
+            .show()
+    }
+    
+    private fun getAppCategory(packageName: String): String {
+        return when {
+            packageName.contains("camera") || packageName.contains("photo") -> "📷 Camera"
+            packageName.contains("music") || packageName.contains("audio") -> "🎵 Music"
+            packageName.contains("video") || packageName.contains("player") -> "🎬 Video"
+            packageName.contains("game") || packageName.contains("play") -> "🎮 Games"
+            packageName.contains("social") || packageName.contains("chat") -> "💬 Social"
+            packageName.contains("browser") || packageName.contains("web") -> "🌐 Browser"
+            packageName.contains("message") || packageName.contains("sms") -> "📱 Messaging"
+            packageName.contains("call") || packageName.contains("phone") -> "📞 Phone"
+            packageName.contains("mail") || packageName.contains("email") -> "📧 Email"
+            packageName.contains("calendar") || packageName.contains("schedule") -> "📅 Productivity"
+            packageName.contains("note") || packageName.contains("memo") -> "📝 Notes"
+            packageName.contains("calculator") || packageName.contains("calc") -> "🧮 Tools"
+            packageName.contains("settings") || packageName.contains("config") -> "⚙️ Settings"
+            packageName.contains("file") || packageName.contains("manager") -> "📁 File Manager"
+            packageName.contains("weather") || packageName.contains("forecast") -> "🌤️ Weather"
+            packageName.contains("map") || packageName.contains("navigation") -> "🗺️ Navigation"
+            packageName.contains("bank") || packageName.contains("finance") -> "💰 Finance"
+            packageName.contains("shop") || packageName.contains("store") -> "🛒 Shopping"
+            packageName.contains("news") || packageName.contains("reader") -> "📰 News"
+            packageName.contains("book") || packageName.contains("read") -> "📚 Reading"
+            packageName.contains("health") || packageName.contains("fitness") -> "💪 Health"
+            packageName.contains("travel") || packageName.contains("trip") -> "✈️ Travel"
+            packageName.contains("food") || packageName.contains("restaurant") -> "🍕 Food"
+            packageName.contains("education") || packageName.contains("learn") -> "🎓 Education"
+            packageName.contains("entertainment") || packageName.contains("fun") -> "🎭 Entertainment"
+            else -> "📱 Other"
+        }
     }
     
     private fun showFavoritesAndAllApps() {

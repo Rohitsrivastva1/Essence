@@ -18,10 +18,18 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.LayoutInflater
 import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -48,6 +56,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var browserButton: Button
     private lateinit var calculatorButton: Button
     private lateinit var settingsQuickButton: Button
+    private lateinit var searchEditText: EditText
+    private lateinit var searchIcon: ImageView
+    private lateinit var clearSearchIcon: ImageView
+    private var searchDialog: AlertDialog? = null
+    private var searchAdapter: SearchAdapter? = null
     private var isLauncherMode = false
     private var backPressCount = 0
     private val backPressHandler = Handler(Looper.getMainLooper())
@@ -99,6 +112,9 @@ class MainActivity : AppCompatActivity() {
         browserButton = findViewById(R.id.browserButton)
         calculatorButton = findViewById(R.id.calculatorButton)
         settingsQuickButton = findViewById(R.id.settingsQuickButton)
+        searchEditText = findViewById(R.id.searchEditText)
+        searchIcon = findViewById(R.id.searchIcon)
+        clearSearchIcon = findViewById(R.id.clearSearchIcon)
         gestureManager = GestureManager(this, appWhitelistManager)
         performanceMonitor = PerformanceMonitor(this)
         
@@ -120,6 +136,9 @@ class MainActivity : AppCompatActivity() {
         
         // Set up quick action buttons
         setupQuickActionButtons()
+        
+        // Set up search functionality
+        setupSearch()
         
         // Start clock updates
         updateClock()
@@ -456,6 +475,38 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
+    private fun setupSearch() {
+        // Set up search text watcher
+        searchEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val query = s.toString().trim()
+                if (query.isNotEmpty()) {
+                    clearSearchIcon.visibility = View.VISIBLE
+                    performSearch(query)
+                } else {
+                    clearSearchIcon.visibility = View.GONE
+                    hideSearchResults()
+                }
+            }
+            
+            override fun afterTextChanged(s: Editable?) {}
+        })
+        
+        // Set up clear search button
+        clearSearchIcon.setOnClickListener {
+            searchEditText.text.clear()
+            clearSearchIcon.visibility = View.GONE
+            hideSearchResults()
+        }
+        
+        // Set up search icon click
+        searchIcon.setOnClickListener {
+            searchEditText.requestFocus()
+        }
+    }
+    
     private fun openDialer() {
         try {
             val dialIntent = Intent(Intent.ACTION_DIAL)
@@ -546,6 +597,77 @@ class MainActivity : AppCompatActivity() {
         if (isLauncherMode) {
             val serviceIntent = Intent(this, LauncherService::class.java)
             stopService(serviceIntent)
+        }
+    }
+    
+    private fun performSearch(query: String) {
+        val allApps = appWhitelistManager.getAllInstalledApps()
+        val filteredApps = allApps.filter { app ->
+            app.appName.contains(query, ignoreCase = true) ||
+            app.packageName.contains(query, ignoreCase = true)
+        }
+        
+        if (filteredApps.isNotEmpty()) {
+            showSearchResults(filteredApps)
+        } else {
+            hideSearchResults()
+        }
+    }
+    
+    private fun showSearchResults(apps: List<AppInfo>) {
+        if (searchDialog == null) {
+            createSearchDialog()
+        }
+        
+        searchAdapter?.updateApps(apps)
+        searchDialog?.show()
+    }
+    
+    private fun hideSearchResults() {
+        searchDialog?.dismiss()
+    }
+    
+    private fun createSearchDialog() {
+        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_search_results, null)
+        val recyclerView = dialogView.findViewById<RecyclerView>(R.id.searchResultsRecyclerView)
+        val noResultsText = dialogView.findViewById<TextView>(R.id.noResultsText)
+        val closeButton = dialogView.findViewById<ImageView>(R.id.closeSearchButton)
+        
+        // Set up RecyclerView
+        searchAdapter = SearchAdapter(this, emptyList()) { app ->
+            launchApp(app)
+            searchDialog?.dismiss()
+            searchEditText.text.clear()
+        }
+        
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = searchAdapter
+        
+        // Set up close button
+        closeButton.setOnClickListener {
+            searchDialog?.dismiss()
+            searchEditText.text.clear()
+        }
+        
+        // Create dialog
+        searchDialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .setCancelable(true)
+            .create()
+            
+        searchDialog?.window?.setBackgroundDrawableResource(android.R.color.transparent)
+    }
+    
+    private fun launchApp(app: AppInfo) {
+        try {
+            val intent = packageManager.getLaunchIntentForPackage(app.packageName)
+            if (intent != null) {
+                startActivity(intent)
+            } else {
+                Toast.makeText(this, "Cannot launch ${app.appName}", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Error launching ${app.appName}", Toast.LENGTH_SHORT).show()
         }
     }
     
