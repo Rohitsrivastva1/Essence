@@ -73,7 +73,7 @@
             
         <!-- Digital Wellbeing activity for usage tracking and focus sessions -->
         <activity
-            android:name=".SimpleDigitalWellbeingActivity"
+            android:name=".DigitalWellbeingActivity"
             android:exported="false"
             android:label="Digital Wellbeing" />
         

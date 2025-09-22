@@ -802,7 +802,7 @@ class MainActivity : AppCompatActivity() {
     
     private fun openDigitalWellbeing() {
         try {
-            val wellbeingIntent = Intent(this, SimpleDigitalWellbeingActivity::class.java)
+            val wellbeingIntent = Intent(this, DigitalWellbeingActivity::class.java)
             startActivity(wellbeingIntent)
         } catch (e: Exception) {
             Toast.makeText(this, "Cannot open Digital Wellbeing", Toast.LENGTH_SHORT).show()
