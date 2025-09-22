@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
+import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
@@ -353,8 +354,8 @@ class MainActivity : AppCompatActivity() {
     
     override fun onDestroy() {
         super.onDestroy()
-        // Stop performance monitoring
-        performanceMonitor.stopMonitoring()
+        // Clean up performance monitoring
+        // performanceMonitor cleanup is handled automatically
         
         // Stop launcher service if running
         if (isLauncherMode) {
@@ -363,13 +364,22 @@ class MainActivity : AppCompatActivity() {
         }
     }
     
-    override fun onTaskRemoved(rootIntent: Intent?) {
-        super.onTaskRemoved(rootIntent)
-        // If the task is removed, restart the launcher
-        if (isLauncherMode) {
-            val restartIntent = Intent(this, MainActivity::class.java)
-            restartIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(restartIntent)
+    /**
+     * Brings the launcher to the front of the screen
+     */
+    private fun bringToFront() {
+        try {
+            // Method 1: Use moveTaskToBack to dismiss other activities
+            moveTaskToBack(false)
+            
+            // Method 2: Bring this activity to front
+            val intent = Intent(this, MainActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            startActivity(intent)
+            
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error bringing launcher to front: ${e.message}")
         }
     }
+    
 }
