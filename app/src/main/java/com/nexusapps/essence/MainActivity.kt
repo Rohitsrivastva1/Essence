@@ -198,12 +198,28 @@ class MainActivity : AppCompatActivity() {
         
         // If in launcher mode, ensure we're always on top
         if (isLauncherMode) {
-            // Bring this activity to front to prevent access to system launcher
-            moveTaskToBack(false)
+            // Ensure we're still the home launcher
+            ensureLauncherMode()
         }
         
         // Refresh the app list when returning from settings
         loadWhitelistedApps()
+    }
+    
+    private fun ensureLauncherMode() {
+        // Check if we're still the default launcher
+        val packageManager = packageManager
+        val homeIntent = Intent(Intent.ACTION_MAIN)
+        homeIntent.addCategory(Intent.CATEGORY_HOME)
+        val resolveInfo = packageManager.resolveActivity(homeIntent, PackageManager.MATCH_DEFAULT_ONLY)
+        
+        if (resolveInfo?.activityInfo?.packageName == packageName) {
+            // We're still the default launcher, ensure we're in front
+            moveTaskToBack(false)
+        } else {
+            // We're no longer the default launcher, show setup instructions
+            showLauncherSetupInstructions()
+        }
     }
     
     override fun onNewIntent(intent: Intent?) {
